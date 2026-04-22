@@ -95,7 +95,7 @@ post_install_actions:
 
 ---
 
-## Action Types: PHP (New!)
+## Action Types: PHP (New)
 
 * Built-in `php-yaml` — reliable YAML read/write
 * Cross-platform — no shell scripting quirks
