@@ -230,22 +230,16 @@ Use `bats-support` and `bats-assert` for cleaner assertions
 
 ## Manual Testing Without GitHub
 
-**Local filesystem** — no release required:
-
 ```bash
-ddev add-on get /path/to/your/addon
-```
+# Local directory — no release needed
+ddev add-on get /path/to/addon
 
-**Branch on GitHub:**
+# Specific branch
+ddev add-on get https://github.com/owner/addon/tarball/branch-name
 
-```bash
-ddev add-on get https://github.com/ddev/ddev-redis/tarball/20251101_stasadev_hostname
-```
-
-**Pull request by number:**
-
-```bash
-ddev add-on get https://github.com/ddev/ddev-redis/tarball/refs/pull/123/head
+# Pull request by number
+ddev add-on get \
+  https://github.com/owner/addon/tarball/refs/pull/42/head
 ```
 
 Always test `ddev add-on remove` too — verify files are cleaned up
