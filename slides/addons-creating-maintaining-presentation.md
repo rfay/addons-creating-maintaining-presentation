@@ -51,6 +51,7 @@ removal_actions: []
 * `global_files` → copied to `~/.ddev/`
 * Actions run on the host (or in the web container for PHP)
 * Advanced: `dependencies`, `yaml_read_files`
+* Unused can be omitted: If you're not using a section, remove it.
 
 ---
 
