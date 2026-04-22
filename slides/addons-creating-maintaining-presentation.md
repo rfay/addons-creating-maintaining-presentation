@@ -228,6 +228,30 @@ Use `bats-support` and `bats-assert` for cleaner assertions
 
 ---
 
+## Manual Testing Without GitHub
+
+**Local filesystem** — no release required:
+
+```bash
+ddev add-on get /path/to/your/addon
+```
+
+**Branch on GitHub:**
+
+```bash
+ddev add-on get https://github.com/ddev/ddev-redis/tarball/20251101_stasadev_hostname
+```
+
+**Pull request by number:**
+
+```bash
+ddev add-on get https://github.com/ddev/ddev-redis/tarball/refs/pull/123/head
+```
+
+Always test `ddev add-on remove` too — verify files are cleaned up
+
+---
+
 ## Publishing Your Add-on
 
 1. Add the **`ddev-get`** GitHub topic to your repository
