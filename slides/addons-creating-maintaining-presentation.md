@@ -26,10 +26,11 @@ ddev add-on list --all
 2. Click **"Use this template"**
 3. Name it with a `ddev-` prefix (e.g. `ddev-foobar`)
 4. Add a meaningful description with keywords
+5. Wait for the automated **"First time setup"** commit (updates README)
 
 Key files:
 * `install.yaml` — defines what gets installed and how
-* `tests/testdata/` + `tests.bats` — automated test suite
+* `tests/testdata/` + `tests/test.bats` — automated test suite
 * `docker-compose.addon-template.yaml` — service definition
 * GitHub Actions CI: runs tests on push and nightly
 
@@ -49,9 +50,9 @@ removal_actions: []
 
 * `project_files` → copied to project's `.ddev/`
 * `global_files` → copied to `~/.ddev/`
-* Actions run on the host (or in the web container for PHP)
-* Advanced: `dependencies`, `yaml_read_files`
-* Unused can be omitted: If you're not using a section, remove it.
+* `pre_install_actions` CWD = project root; `post_install_actions` CWD = `.ddev/`
+* Advanced: `dependencies`, `yaml_read_files` (Go templates only, not PHP)
+* Unused sections can be omitted
 
 ---
 
@@ -157,7 +158,7 @@ if (!empty($services)) {
 }
 ```
 
-For complex logic: use separate files in `myservice/scripts/setup.php`
+For complex logic: put logic in `myservice/scripts/setup.php` and `require` it from the action
 
 ---
 
@@ -209,7 +210,7 @@ See [ddev-upsun](https://github.com/ddev/ddev-upsun) for a real-world example
 
 ## Testing with Bats
 
-The template includes `tests.bats` — run on every push and nightly:
+The template includes `tests/test.bats` — run on every push and nightly:
 
 ```bash
 #!/usr/bin/env bats
@@ -249,6 +250,7 @@ Always test `ddev add-on remove` too — verify files are cleaned up
 ## Publishing Your Add-on
 
 1. Add the **`ddev-get`** GitHub topic to your repository
+   * Topic is `ddev-get`, not `ddev-add-on-get` — intentional naming
    * Appears in `ddev add-on list --all` immediately
    * Listed on addons.ddev.com within ~24 hours
 2. Create releases with **semantic versioning** (v1.0.0, v1.1.0, ...)
@@ -264,7 +266,8 @@ To become an **officially supported** add-on:
 ## Maintenance Practices
 
 * **Track DDEV releases** — subscribe to ddev/ddev, read changelogs
-* **Run the update checker script** periodically
+* **Run the update checker** periodically:
+  `curl -fsSL https://ddev.com/s/addon-update-checker.sh | bash`
 * **Study official add-ons** — they set the pattern
 * **Update** `ddev_version_constraint: ">= v1.24.10"` in `install.yaml`
 * Watch [ddev-addon-template](https://github.com/ddev/ddev-addon-template) for template changes
@@ -299,6 +302,8 @@ To become an **officially supported** add-on:
 * `x-ddev.ssh-shell` — set a custom shell for `ddev ssh -s my-service`
 * Docker Compose `profiles:` — optional services users can enable
 * `MutagenSync` annotation — correct file sync for file-modifying commands
+* `#ddev-warning-exit-code: 2` — treat a specific exit code as warning, not error
+* `yaml_read_files` — read YAML into Go template vars (Bash actions only, not PHP)
 
 ---
 
