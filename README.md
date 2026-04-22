@@ -1,4 +1,4 @@
-# Presentation Title
+# Creating and Maintaining DDEV Add-ons
 
 This repository contains a presentation built with [reveal.js](https://revealjs.com/).
 
@@ -31,7 +31,7 @@ This repository contains a presentation built with [reveal.js](https://revealjs.
 
 ## 🎯 View the Presentation
 
-**👉 [View Live Presentation](https://YOUR-USERNAME.github.io/YOUR-REPO-NAME/)**
+**👉 [View Live Presentation](https://rfay.github.io/addons-creating-maintaining-presentation/)**
 
 After setup, this link will automatically point to your GitHub Pages deployment.
 
@@ -80,7 +80,7 @@ This will start a local server at http://localhost:8000
    ```
 2. The GitHub Actions workflow will automatically build and deploy your presentation
 3. Check the **Actions** tab to monitor the deployment
-4. Once complete, your presentation will be available at `https://YOUR-USERNAME.github.io/YOUR-REPO-NAME/`
+4. Once complete, your presentation will be available at `https://rfay.github.io/addons-creating-maintaining-presentation/`
 
 **Note:** The first deployment may take a few minutes. Subsequent updates deploy automatically when you push to `main`.
 
