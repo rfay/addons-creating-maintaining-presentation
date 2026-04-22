@@ -18,8 +18,6 @@ ddev add-on get ddev/ddev-redis
 ddev add-on list --all
 ```
 
-> Note: `ddev get` was deprecated in v1.23.5 — use `ddev add-on get`
-
 ---
 
 ## Quick Start: Use the Template
@@ -42,20 +40,17 @@ Key files:
 ```yaml
 name: my-addon
 ddev_version_constraint: ">= v1.24.10"
-
 pre_install_actions: []
 project_files: []
 global_files: []
 post_install_actions: []
 removal_actions: []
-
-dependencies: []
-yaml_read_files: {}
 ```
 
 * `project_files` → copied to project's `.ddev/`
 * `global_files` → copied to `~/.ddev/`
 * Actions run on the host (or in the web container for PHP)
+* Advanced: `dependencies`, `yaml_read_files`
 
 ---
 
@@ -81,9 +76,12 @@ services:
 
 ## Action Types: Bash
 
-Traditional bash actions run on the **host system**
+Bash actions run on the **host system** — not inside a container
 
-Use for: file permissions, environment setup, simple file operations
+* Use for: permissions, env setup, simple file operations
+* Always `#!/usr/bin/env bash` for portability
+* Must be **idempotent** — safe to run multiple times
+* `#ddev-description:` shows progress during install
 
 ```yaml
 post_install_actions:
@@ -94,16 +92,14 @@ post_install_actions:
     echo "Setup complete for $DDEV_PROJECT"
 ```
 
-Rules:
-* Always use `#!/usr/bin/env bash` for portability
-* Must be **idempotent** (safe to run multiple times)
-* Use `#ddev-description:` for progress display
-
 ---
 
 ## Action Types: PHP (New!)
 
-PHP actions for complex logic and configuration processing
+* Built-in `php-yaml` — reliable YAML read/write
+* Cross-platform — no shell scripting quirks
+* Rich string processing and conditional logic
+* Detected by the `<?php` opening tag; runs in web container
 
 ```yaml
 post_install_actions:
@@ -112,15 +108,8 @@ post_install_actions:
     #ddev-description: Process project configuration
     $projectType = $_ENV['DDEV_PROJECT_TYPE'];
     $projectName = $_ENV['DDEV_PROJECT'];
-
     echo "Setting up $projectType project: $projectName\n";
-    ```
-
-Why PHP?
-* Built-in `php-yaml` extension — reliable YAML read/write
-* Cross-platform (no shell scripting differences between macOS/Linux/Windows)
-* Rich string manipulation and data processing
-* DDEV detects PHP actions by the `<?php` opening tag
+```
 
 ---
 
@@ -128,22 +117,20 @@ Why PHP?
 
 ```php
 <?php
-// Project information
-$_ENV['DDEV_PROJECT']        // project name
-$_ENV['DDEV_PROJECT_TYPE']   // 'drupal', 'wordpress', 'laravel', etc.
-$_ENV['DDEV_APPROOT']        // '/var/www/html'
-$_ENV['DDEV_DOCROOT']        // 'web', 'public', etc.
-$_ENV['DDEV_TLD']            // 'ddev.site' or configured TLD
-
-// Technology stack
-$_ENV['DDEV_PHP_VERSION']    // '8.1', '8.2', '8.3', etc.
-$_ENV['DDEV_DATABASE']       // 'mysql:8.0', 'postgres:16', etc.
-$_ENV['DDEV_DATABASE_FAMILY']// 'mysql', 'postgres'
-$_ENV['DDEV_WEBSERVER_TYPE'] // 'nginx-fpm', 'apache-fpm'
-
+// Project
+$_ENV['DDEV_PROJECT']         // project name
+$_ENV['DDEV_PROJECT_TYPE']    // 'drupal', 'wordpress', 'laravel', etc.
+$_ENV['DDEV_APPROOT']         // '/var/www/html'
+$_ENV['DDEV_DOCROOT']         // 'web', 'public', etc.
+$_ENV['DDEV_TLD']             // 'ddev.site' or configured TLD
+// Stack
+$_ENV['DDEV_PHP_VERSION']     // '8.1', '8.2', '8.3', etc.
+$_ENV['DDEV_DATABASE']        // 'mysql:8.0', 'postgres:16', etc.
+$_ENV['DDEV_DATABASE_FAMILY'] // 'mysql', 'postgres'
+$_ENV['DDEV_WEBSERVER_TYPE']  // 'nginx-fpm', 'apache-fpm'
 // System
-$_ENV['DDEV_VERSION']        // current DDEV version
-$_ENV['DDEV_MUTAGEN_ENABLED']// 'true' or 'false'
+$_ENV['DDEV_VERSION']         // current DDEV version
+$_ENV['DDEV_MUTAGEN_ENABLED'] // 'true' or 'false'
 ```
 
 Working directory: `/var/www/html/.ddev`
@@ -157,24 +144,19 @@ Working directory: `/var/www/html/.ddev`
 #ddev-description: Generate service configuration
 $projectType = $_ENV['DDEV_PROJECT_TYPE'];
 $services = [];
-
-switch ($projectType) {
-    case 'drupal':
-        $services['redis'] = ['image' => 'redis:7-alpine'];
-        break;
-    case 'wordpress':
-        $services['memcached'] = ['image' => 'memcached:alpine'];
-        break;
+if ($projectType === 'drupal') {
+    $services['redis'] = ['image' => 'redis:7-alpine'];
+} elseif ($projectType === 'wordpress') {
+    $services['memcached'] = ['image' => 'memcached:alpine'];
 }
-
 if (!empty($services)) {
     $content = "#ddev-generated\n" . yaml_emit(['services' => $services]);
     file_put_contents('docker-compose.cache.yaml', $content);
-    echo "Generated cache config for $projectType\n";
+    echo "Generated config for $projectType\n";
 }
 ```
 
-For complex logic, use separate PHP script files in a namespaced directory: `myservice/scripts/setup.php`
+For complex logic: use separate files in `myservice/scripts/setup.php`
 
 ---
 
@@ -213,12 +195,11 @@ dependencies:
 * Skip with: `ddev add-on get --skip-deps my-addon`
 * DDEV detects and prevents circular dependencies
 
-**Runtime dependencies** (advanced) — for add-ons that must analyze project files to determine what's needed:
+**Runtime dependencies** (advanced) — for add-ons that analyze project files:
 
 ```php
-// In a post_install_action, write a file:
 file_put_contents('.runtime-deps-my-addon', "ddev/ddev-redis\n");
-// DDEV processes this file after all installation phases complete
+// DDEV processes this after all installation phases complete
 ```
 
 See [ddev-upsun](https://github.com/ddev/ddev-upsun) for a real-world example
@@ -231,18 +212,11 @@ The template includes `tests.bats` — run on every push and nightly:
 
 ```bash
 #!/usr/bin/env bats
-
-@test "install add-on and start" {
+@test "install add-on and verify service" {
   ddev add-on get .
   ddev restart
-  health_check_url="http://localhost:$(ddev port myservice 8080)/health"
-  curl -sf "$health_check_url"
+  curl -sf "http://localhost:$(ddev port myservice 8080)/health"
 }
-
-@test "verify service responds" {
-  ddev exec curl -s http://myservice:8080/
-}
-
 @test "remove add-on cleanly" {
   ddev add-on remove my-addon
   [ ! -f .ddev/docker-compose.myservice.yaml ]
@@ -270,94 +244,42 @@ To become an **officially supported** add-on:
 
 ## Maintenance Practices
 
-Keep your add-on healthy over time:
-
-* **Track DDEV releases** — subscribe to the ddev/ddev repo, read changelogs
+* **Track DDEV releases** — subscribe to ddev/ddev, read changelogs
 * **Run the update checker script** periodically
 * **Study official add-ons** — they set the pattern
-* **Update version constraint** in `install.yaml`:
-
-```yaml
-ddev_version_constraint: ">= v1.24.10"
-```
-
-* Watch for template changes at [ddev-addon-template](https://github.com/ddev/ddev-addon-template)
+* **Update** `ddev_version_constraint: ">= v1.24.10"` in `install.yaml`
+* Watch [ddev-addon-template](https://github.com/ddev/ddev-addon-template) for template changes
 * Publish a release after every substantive update
 
 ---
 
 ## Repository Settings
 
-Recommended GitHub repository configuration:
-
-**Merging:**
-* Enable squash merging with PR title as commit message
+* Squash merge only — PR title as commit message
 * Auto-delete head branches after merge
-* Disable merge commits and rebase merging
-
-**Branch protection on `main`:**
-* Require pull requests before merging
-* Block force pushes
-* Restrict deletions
-
-**Housekeeping:**
+* Require pull requests before merging on `main`
+* Block force pushes and restrict deletions
 * Disable unused features: Wikis, Discussions, Projects
-* Add issue and PR templates for contribution quality
+* Add issue and PR templates
 
 ---
 
 ## Advanced Features
 
-```yaml
-# Minimal Docker image customization (no full Dockerfile needed)
-dockerfile_inline: |
-  RUN apt-get install -y mypackage
-
-# Manage environment variables
-# ddev dotenv set .ddev/.env.myservice --myservice-api-key=abc123
-
-# Customize ddev describe output (v1.24.10+)
-# x-ddev.describe-myservice: "Running at https://${DDEV_HOSTNAME}"
-
-# Custom SSH shell
-# x-ddev.ssh-shell: /bin/zsh
-
-# Docker Compose optional profiles
-# profiles: [myservice]
-
-# Mark file-modifying commands for Mutagen
-# annotations:
-#   com.ddev.io.mutagensync: "true"
-```
+* `dockerfile_inline` — minor Docker image tweaks without a separate Dockerfile
+* `ddev dotenv set` — manage env vars in `.ddev/.env.*` files
+* `x-ddev.describe-*` — customize `ddev describe` output (v1.24.10+)
+* `x-ddev.ssh-shell` — set a custom shell for `ddev ssh -s my-service`
+* Docker Compose `profiles:` — optional services users can enable
+* `MutagenSync` annotation — correct file sync for file-modifying commands
 
 ---
 
 ## Getting Help & Resources
 
-* **DDEV Discord** — [discord.gg/hCZFfAMc5k](https://discord.gg/hCZFfAMc5k) — #add-ons channel
+* **DDEV Discord** — [ddev.com/s/discord](https://ddev.com/s/discord) — #add-ons channel
 * **Add-on Registry** — [addons.ddev.com](https://addons.ddev.com)
 * **Template** — [github.com/ddev/ddev-addon-template](https://github.com/ddev/ddev-addon-template)
 * **Docs** — [docs.ddev.com/users/extend/creating-add-ons/](https://docs.ddev.com/en/stable/users/extend/creating-add-ons/)
 * **Maintenance Guide** — [ddev.com/blog/ddev-add-on-maintenance-guide/](https://ddev.com/blog/ddev-add-on-maintenance-guide/)
 * **GitHub Issues** — [github.com/ddev/ddev/issues](https://github.com/ddev/ddev/issues)
-
----
-
-## Suggested Docs Fixes
-
-Issues found while preparing this presentation:
-
-**docs.ddev.com/users/extend/creating-add-ons/**
-* `#ddev-generated` directive not explained — critical for removal
-* `removal_actions` listed but no example provided
-* `yaml_read_files` mixes Go template and PHP syntax confusingly
-* PHP action execution environment (web container vs host) not clearly stated
-* `ddev get` deprecation not noted
-* Missing: `ddev describe` customization, `dockerfile_inline`
-
-**ddev.com/blog/ddev-add-on-maintenance-guide/**
-* PHP actions not mentioned as a maintenance upgrade path
-* `#ddev-generated` purpose not explained
-
-**ddev-addon-template README:**
-* Uses `pre_install_commands`/`post_install_commands` but `install.yaml` uses `pre_install_actions`/`post_install_actions` — one is outdated
