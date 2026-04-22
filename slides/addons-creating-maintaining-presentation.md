@@ -15,7 +15,7 @@ Extend DDEV with additional services, commands, and configuration
 
 ```bash
 ddev add-on get ddev/ddev-redis
-ddev add-on list --all
+ddev add-on list
 ```
 
 ---
@@ -237,10 +237,13 @@ ddev add-on get /path/to/addon
 
 # Specific branch
 ddev add-on get https://github.com/owner/addon/tarball/branch-name
+# Or simpler in v1.25.0+:
+ddev add-on get owner/addon --version branch-name
 
 # Pull request by number
-ddev add-on get \
-  https://github.com/owner/addon/tarball/refs/pull/42/head
+ddev add-on get https://github.com/owner/addon/tarball/refs/pull/42/head
+# Or simpler in v1.25.0+:
+ddev add-on get owner/addon --pr 54
 ```
 
 Always test `ddev add-on remove` too — verify files are cleaned up
@@ -251,7 +254,7 @@ Always test `ddev add-on remove` too — verify files are cleaned up
 
 1. Add the **`ddev-get`** GitHub topic to your repository
    * Topic is `ddev-get`, not `ddev-add-on-get` — intentional naming
-   * Appears in `ddev add-on list --all` immediately
+   * Appears in `ddev add-on list` immediately
    * Listed on addons.ddev.com within ~24 hours
 2. Create releases with **semantic versioning** (v1.0.0, v1.1.0, ...)
 3. Include registry badges in your README
