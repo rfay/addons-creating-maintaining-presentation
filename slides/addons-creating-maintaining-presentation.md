@@ -264,6 +264,14 @@ To become an **officially supported** add-on:
 
 ---
 
+## Curation and Discoverability
+
+* You do not have to add the `ddev-get` topic to your repository; it will not appear in [addons.ddev.com](https://addons.ddev.com) if you don't add it. That's often best for experimental add-ons or team-only add-ons.
+* If you don't expect others to use the add-on, or it's only experimental, please don't add the topic.
+* On GitHub, tests stop running after 2 months with no commits, and have to be re-enabled. Please keep them running if the add-on is useful. (If it's not, remove the `ddev-get` topic.)
+
+---
+
 ## Advanced Features
 
 * `dockerfile_inline` — minor Docker image tweaks without a separate Dockerfile
