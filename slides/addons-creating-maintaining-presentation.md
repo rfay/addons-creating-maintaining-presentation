@@ -312,7 +312,7 @@ To become an **officially supported** add-on:
 
 ## Getting Help & Resources
 
-* **DDEV Discord** — [ddev.com/s/discord](https://ddev.com/s/discord) — #add-ons channel
+* **DDEV Discord** — [ddev.com/s/discord](https://ddev.com/s/discord)
 * **Add-on Registry** — [addons.ddev.com](https://addons.ddev.com)
 * **Template** — [github.com/ddev/ddev-addon-template](https://github.com/ddev/ddev-addon-template)
 * **Docs** — [docs.ddev.com/users/extend/creating-add-ons/](https://docs.ddev.com/en/stable/users/extend/creating-add-ons/)
